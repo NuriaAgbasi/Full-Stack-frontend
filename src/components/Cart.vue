@@ -10,7 +10,6 @@
     </ul>
 
     <form @submit.prevent="checkout">
-      <!-- Form fields for name and phone with validation messages -->
       <div class="mb-3">
         <label for="name" class="form-label">Name:</label>
         <input
@@ -58,13 +57,38 @@ export default {
     phoneError: String,
     message: String
   },
+  data() {
+    return {
+      name: '',
+      phone: '',
+      nameError: '',
+      phoneError: '',
+      isFormValid: false
+    };
+  },
   methods: {
-    removeFromCart(index) {
-      this.$emit('removeFromCart', index);
+    validateForm() {
+      this.nameError = this.name ? '' : 'Name is required';
+      this.phoneError = this.phone ? '' : 'Phone is required';
+      this.isFormValid = this.name && this.phone && !this.nameError && !this.phoneError;
     },
     checkout() {
-      this.$emit('checkout');
+      if (this.isFormValid) {
+        this.$emit('checkout');
+      } else {
+        this.validateForm();
+      }
+    },
+    removeFromCart(index) {
+      this.$emit('removeFromCart', index);
     }
+  },
+  watch: {
+    name: 'validateForm',
+    phone: 'validateForm',
+    cart(newCart) {
+      console.log('Cart items:', newCart);
+    },
   }
 };
 </script>
