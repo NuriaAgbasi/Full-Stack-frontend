@@ -153,13 +153,66 @@ export default {
       }
     },
     checkout() {
-      if (this.isFormValid) {
-        this.message = 'Order has been submitted!';
-        this.cart = []; 
-        this.name = '';
-        this.phone = '';
+  if (this.isFormValid) {
+    const orderData = {
+      name: this.name,
+      phoneNumber: this.phone,
+      lessonIds: this.cart.map(lesson => lesson.id),
+      numberOfSpaces: this.cart.length,
+    };
+
+    // Submit the order to the backend
+    fetch('http://localhost:8000/orders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(orderData),
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Order submission failed: ${response.statusText}`);
       }
-    },
+      return response.json();
+    })
+    .then(orderResponse => {
+      this.message = 'Order has been submitted!';
+      console.log('Order Created:', orderResponse);
+
+      // Update each lesson’s available spaces in the backend
+      this.cart.forEach(lesson => {
+        fetch(`http://localhost:8000/lessons/${lesson.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ spaces: lesson.spaces }),
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Failed to update lesson ${lesson.id}: ${response.statusText}`);
+          }
+          return response.json();
+        })
+        .then(updateResponse => {
+          console.log(`Updated lesson spaces for ${lesson.subject}:`, updateResponse);
+        })
+        .catch(error => {
+          console.error('Error updating lesson:', error);
+        });
+      });
+
+      // Clear cart and reset form after successful submission
+      this.cart = [];
+      this.name = '';
+      this.phone = '';
+    })
+    .catch(error => {
+      console.error('Error submitting order:', error);
+      this.message = 'There was an error submitting your order.';
+    });
+  }
+},
     fetchLessons() {
       fetch('http://localhost:8000/lessons')  // Adjust the URL according to your backend
         .then(response => response.json())
