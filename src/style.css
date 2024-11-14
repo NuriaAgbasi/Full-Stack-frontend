@@ -1,0 +1,93 @@
+/* style.css */
+
+/* Global Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  /* Background */
+  body {
+    background-color: #ebdbea; /* Pastel Blue */
+    color: #1e1a1a;
+    font-size: 16px;
+    line-height: 1.5;
+    padding: 20px;
+  }
+  
+  /* Search Bar */
+  input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: 2px solid #c75da7;
+    border-radius: 8px;
+    margin: 10px 0;
+    background-color: #f2f0f2;
+    transition: all 0.3s ease;
+  }
+  
+  input[type="text"]:focus {
+    outline: none;
+    border-color: #ffb6c1; /* Pastel Pink */
+    box-shadow: 0 0 10px rgba(255, 182, 193, 0.5); /* Pastel Pink Glow */
+  }
+  
+  /* Cards or Containers */
+  
+  /* Buttons */
+  button {
+    background-color: #ffcccb; /* Pastel Peach */
+    border: none;
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  button:hover {
+    background-color: #ffb6c1; /* Pastel Pink */
+  }
+  
+  /* Links */
+  a {
+    color: #ffb6c1; /* Pastel Pink */
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+  
+  a:hover {
+    color: #ffcccb; /* Pastel Peach */
+  }
+
+  .header{
+    color: #170d0b;
+    font-size: 30px;
+  }
+  
+  /* Footer */
+  footer {
+    background-color: #ffb6c1; /* Pastel Pink */
+    padding: 10px;
+    text-align: center;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
+  
+  footer p {
+    color: #fff;
+  }
+  
+  /* Additional Styles for the Content */
+  p {
+    color: #666;
+    margin-bottom: 10px;
+  }
+  
+  h2, h3 {
+    color: #333;
+  }
+  
