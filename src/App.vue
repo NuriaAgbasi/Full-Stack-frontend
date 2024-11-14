@@ -12,10 +12,22 @@
     <SortOptions v-if="!showCart" @sort-lessons="handleSort" />
 
     <div v-if="!showCart">
+      <!-- Search Bar -->
+      <div class="mb-3">
+        <label for="search" class="form-label">Search Lessons</label>
+        <input 
+          type="text" 
+          id="search" 
+          v-model="searchQuery" 
+          class="form-control" 
+          placeholder="Search by subject or description"
+        />
+      </div>
+
       <h2>Lessons</h2>
       <div class="row">
         <LessonCard
-          v-for="(lesson, index) in sortedLessons"
+          v-for="(lesson, index) in filteredAndSortedLessons"
           :key="index"
           :lesson="lesson"
           :addToCart="() => addToCart(lesson)"
@@ -92,22 +104,34 @@ export default {
       message: '',
       nameError: null,
       phoneError: null,
-      selectedSort: 'subject',
-      selectedOrder: 'asc',
+      selectedSort: 'subject', // default sort attribute
+      selectedOrder: 'asc', // default sort order
+      searchQuery: '', // Search query for filtering lessons
     };
   },
   computed: {
-    sortedLessons() {
-      return [...this.lessons].sort((a, b) => {
-        let result;
-        if (typeof a[this.selectedSort] === 'string') {
-          result = a[this.selectedSort].localeCompare(b[this.selectedSort]);
-        } else {
-          result = a[this.selectedSort] - b[this.selectedSort];
-        }
-        return this.selectedOrder === 'asc' ? result : -result;
-      });
-    },
+    // Filter lessons 
+    filteredAndSortedLessons() {
+  return this.lessons
+    .filter(lesson => {
+      const searchString = this.searchQuery.toLowerCase();
+      // Check if 'subject', 'price' contains the search query
+      return (
+        (lesson.subject && lesson.subject.toLowerCase().includes(searchString)) ||
+        (lesson.location && lesson.location.toLowerCase().includes(searchString)) ||
+        (lesson.price && lesson.price.toString().includes(searchString))  // Add price check here
+      );
+    })
+    .sort((a, b) => {
+      let result;
+      if (typeof a[this.selectedSort] === 'string') {
+        result = a[this.selectedSort].localeCompare(b[this.selectedSort]);
+      } else {
+        result = a[this.selectedSort] - b[this.selectedSort];
+      }
+      return this.selectedOrder === 'asc' ? result : -result;
+    });
+},
     isFormValid() {
       return this.nameError === null && this.phoneError === null && this.name !== '' && this.phone !== '';
     },
@@ -124,16 +148,11 @@ export default {
       this.selectedOrder = order;
     },
     addToCart(lesson) {
-      // Check if the lesson is already in the cart
       const lessonInCart = this.cart.find(item => item.id === lesson.id);
-      if (lessonInCart) {
-        return;  // Don't add the same lesson again
-      }
-
+      if (lessonInCart) return;  // Don't add the same lesson again
       if (lesson.spaces > 0) {
-        // Push the lesson to cart and mark it as added
-        this.cart.push({ ...lesson });  // Make a copy of the lesson to avoid direct mutations
-        lesson.spaces--;  // Decrement space immediately for the lesson being added to the cart
+        this.cart.push({ ...lesson });
+        lesson.spaces--;
       }
     },
     removeFromCart(index) {
@@ -141,7 +160,7 @@ export default {
       this.cart.splice(index, 1);
       const lessonInLessons = this.lessons.find(lesson => lesson.subject === removedLesson.subject);
       if (lessonInLessons) {
-        lessonInLessons.spaces++;  // Restore the space when removed from cart
+        lessonInLessons.spaces++;
       }
     },
     validateForm() {
@@ -171,45 +190,27 @@ export default {
         // Submit the order to the backend
         fetch('http://localhost:8000/orders', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(orderData),
         })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Order submission failed: ${response.statusText}`);
-          }
-          return response.json();
-        })
+        .then(response => response.json())
         .then(orderResponse => {
           this.message = 'Order has been submitted!';
           console.log('Order Created:', orderResponse);
 
-          // Now that the order is confirmed, decrement spaces for each lesson
+          // Update spaces for each lesson after successful order submission
           this.cart.forEach(lesson => {
             fetch(`http://localhost:8000/lessons/${lesson.id}`, {
               method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ spaces: lesson.spaces - 1 }),  // Update space only after the order is confirmed
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ spaces: lesson.spaces - 1 }),
             })
-            .then(response => {
-              if (!response.ok) {
-                throw new Error(`Failed to update lesson ${lesson.id}: ${response.statusText}`);
-              }
-              return response.json();
-            })
-            .then(updateResponse => {
-              console.log(`Updated lesson spaces for ${lesson.subject}:`, updateResponse);
-            })
-            .catch(error => {
-              console.error('Error updating lesson:', error);
-            });
+            .then(response => response.json())
+            .then(updateResponse => console.log(`Updated lesson spaces for ${lesson.subject}:`, updateResponse))
+            .catch(error => console.error('Error updating lesson:', error));
           });
 
-          // Clear cart and reset form after successful submission
+          // Clear cart and reset form
           this.cart = [];
           this.name = '';
           this.phone = '';
@@ -221,14 +222,10 @@ export default {
       }
     },
     fetchLessons() {
-      fetch('http://localhost:8000/lessons')  // Adjust the URL according to your backend
+      fetch('http://localhost:8000/lessons')
         .then(response => response.json())
-        .then(data => {
-          this.lessons = data;  // Assign the fetched lessons to the lessons array
-        })
-        .catch(error => {
-          console.error('Error fetching lessons:', error);
-        });
+        .then(data => { this.lessons = data; })
+        .catch(error => console.error('Error fetching lessons:', error));
     },
   },
   created() {
