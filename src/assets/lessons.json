@@ -1,0 +1,72 @@
+[
+  {
+    "subject": "Mathematics Course",
+    "price": 20,
+    "spaces": 5,
+    "location": "Room 101",
+    "icon": "fas fa-calculator"
+  },
+  {
+    "subject": "Science Course",
+    "price": 25,
+    "spaces": 5,
+    "location": "Room 102",
+    "icon": "fas fa-flask"
+  },
+  {
+    "subject": "History Course",
+    "price": 15,
+    "spaces": 5,
+    "location": "Room 103",
+    "icon": "fas fa-book"
+  },
+  {
+    "subject": "Geography Course",
+    "price": 18,
+    "spaces": 5,
+    "location": "Room 104",
+    "icon": "fas fa-globe"
+  },
+  {
+    "subject": "Art Course",
+    "price": 30,
+    "spaces": 5,
+    "location": "Room 105",
+    "icon": "fas fa-paint-brush"
+  },
+  {
+    "subject": "Computer Science",
+    "price": 22,
+    "spaces": 5,
+    "location": "Room 106",
+    "icon": "fas fa-laptop-code"
+  },
+  {
+    "subject": "Physical Education",
+    "price": 12,
+    "spaces": 5,
+    "location": "Gym",
+    "icon": "fas fa-futbol"
+  },
+  {
+    "subject": "Music Course",
+    "price": 28,
+    "spaces": 5,
+    "location": "Music Room",
+    "icon": "fas fa-music"
+  },
+  {
+    "subject": "Drama Course",
+    "price": 26,
+    "spaces": 5,
+    "location": "Theater",
+    "icon": "fas fa-theater-masks"
+  },
+  {
+    "subject": "Coding Bootcamp",
+    "price": 40,
+    "spaces": 5,
+    "location": "Tech Lab",
+    "icon": "fas fa-code"
+  }
+]
