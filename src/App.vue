@@ -8,6 +8,9 @@
         </button>
       </div>
     </nav>
+    <button @click="showCart = false" class="btn btn-secondary mt-3">
+        Back to Products
+      </button>
 
     <SortOptions v-if="!showCart" @sort-lessons="handleSort" />
 
@@ -71,6 +74,7 @@
           <small v-if="phoneError" class="text-danger">{{ phoneError }}</small>
         </div>
 
+        
         <button
           type="submit"
           class="btn btn-success"
