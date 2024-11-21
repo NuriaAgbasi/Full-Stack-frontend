@@ -42,11 +42,12 @@
       <h2>Shopping Cart</h2>
       <div v-if="cart.length === 0">Your cart is empty.</div>
       <ul v-else>
-        <li v-for="(lesson, index) in cart" :key="index">
-          {{ lesson.subject }} - ${{ lesson.price }}
-          <button @click="removeFromCart(index)" class="btn btn-danger btn-sm">Remove</button>
-        </li>
-      </ul>
+  <li v-for="(lesson, index) in cart" :key="index">
+    {{ lesson.subject }} - ${{ lesson.price }} x {{ lesson.quantity }}
+    <button @click="removeFromCart(index)" class="btn btn-danger btn-sm">Remove</button>
+  </li>
+</ul>
+
 
       <form @submit.prevent="checkout">
         <div class="mb-3">
@@ -152,21 +153,33 @@ export default {
       this.selectedOrder = order;
     },
     addToCart(lesson) {
-      const lessonInCart = this.cart.find(item => item.id === lesson.id);
-      if (lessonInCart) return;  // Don't add the same lesson again
-      if (lesson.spaces > 0) {
-        this.cart.push({ ...lesson });
-        lesson.spaces--;
-      }
-    },
+  const lessonInCart = this.cart.find(item => item.id === lesson.id);
+  if (lessonInCart) {
+    if (lesson.spaces > 0) {
+      lessonInCart.quantity++;
+      lesson.spaces--;
+    }
+  } else if (lesson.spaces > 0) {
+    this.cart.push({ ...lesson, quantity: 1 });
+    lesson.spaces--;
+  }
+},
     removeFromCart(index) {
-      const removedLesson = this.cart[index];
-      this.cart.splice(index, 1);
-      const lessonInLessons = this.lessons.find(lesson => lesson.subject === removedLesson.subject);
-      if (lessonInLessons) {
-        lessonInLessons.spaces++;
-      }
-    },
+  const removedLesson = this.cart[index];
+  if (removedLesson.quantity > 1) {
+    removedLesson.quantity--;
+    const lessonInLessons = this.lessons.find(lesson => lesson.id === removedLesson.id);
+    if (lessonInLessons) {
+      lessonInLessons.spaces++;
+    }
+  } else {
+    this.cart.splice(index, 1);
+    const lessonInLessons = this.lessons.find(lesson => lesson.id === removedLesson.id);
+    if (lessonInLessons) {
+      lessonInLessons.spaces++;
+    }
+  }
+},
     validateForm() {
       const nameRegex = /^[A-Za-z ]+$/;
       if (!nameRegex.test(this.name)) {
@@ -183,48 +196,37 @@ export default {
       }
     },
     checkout() {
-      if (this.isFormValid) {
-        const orderData = {
-          name: this.name,
-          phoneNumber: this.phone,
-          lessonIds: this.cart.map(lesson => lesson.id),
-          numberOfSpaces: this.cart.length,
-        };
+  if (this.isFormValid) {
+    const orderData = {
+      name: this.name,
+      phoneNumber: this.phone,
+      items: this.cart.map(lesson => ({
+        id: lesson.id,
+        subject: lesson.subject,
+        price: lesson.price,
+        quantity: lesson.quantity,
+      })),
+    };
 
-        // Submit the order to the backend
-        fetch('http://localhost:8000/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(orderData),
-        })
-        .then(response => response.json())
-        .then(orderResponse => {
-          this.message = 'Order has been submitted!';
-          console.log('Order Created:', orderResponse);
+    fetch('http://localhost:8000/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderData),
+    })
+      .then(response => response.json())
+      .then(orderResponse => {
+        this.message = 'Order has been submitted!';
+        this.cart = [];
+        this.name = '';
+        this.phone = '';
+      })
+      .catch(error => {
+        console.error('Error submitting order:', error);
+        this.message = 'There was an error submitting your order.';
+      });
+  }
+},
 
-          // Update spaces for each lesson after successful order submission
-          this.cart.forEach(lesson => {
-            fetch(`http://localhost:8000/lessons/${lesson.id}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ spaces: lesson.spaces - 1 }),
-            })
-            .then(response => response.json())
-            .then(updateResponse => console.log(`Updated lesson spaces for ${lesson.subject}:`, updateResponse))
-            .catch(error => console.error('Error updating lesson:', error));
-          });
-
-          // Clear cart and reset form
-          this.cart = [];
-          this.name = '';
-          this.phone = '';
-        })
-        .catch(error => {
-          console.error('Error submitting order:', error);
-          this.message = 'There was an error submitting your order.';
-        });
-      }
-    },
     fetchLessons() {
       fetch('http://localhost:8000/lessons')
         .then(response => response.json())
