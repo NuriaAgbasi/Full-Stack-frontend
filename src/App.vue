@@ -222,7 +222,7 @@ export default {
           })),
         };
 
-        fetch('http://localhost:8000/orders', {
+        fetch('https://full-stack-cw-backend.onrender.com/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(orderData),
@@ -241,7 +241,7 @@ export default {
       }
     },
     fetchLessons() {
-      fetch('http://localhost:8000/lessons')
+      fetch('https://full-stack-cw-backend.onrender.com/lessons')
         .then(response => response.json())
         .then(data => { this.lessons = data; })
         .catch(error => console.error('Error fetching lessons:', error));
