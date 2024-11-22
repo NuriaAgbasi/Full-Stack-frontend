@@ -90,4 +90,119 @@
   h2, h3 {
     color: #333;
   }
-  
+
+  .button{
+  background-color: #6e7fcb;
+  border: none;
+  padding: 12px 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-left: auto;
+  display: inline-block;
+  text-align: center;
+  }
+
+  .button:disabled {
+    background-color: #d3d3d3; 
+    cursor: not-allowed; 
+    opacity: 0.6; 
+  }
+
+
+  /* Navbar styling */
+.navbar {
+  background: rgb(110, 109, 109); /* Gradient background */
+  border-radius: 10px; /* Rounded corners */
+}
+
+.navbar .navbar-brand {
+  font-size: 24px; /* Larger font size for the brand */
+  font-weight: bold; /* Bold text for emphasis */
+}
+
+/* Added shadow and rounded corners */
+.navbar-shadow {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile and smaller devices */
+@media (max-width: 767px) {
+  .navbar-brand {
+    font-size: 20px; /* Adjust font size on small screens */
+  }
+
+  .navbar button {
+    font-size: 14px; /* Slightly smaller button text */
+  }
+}
+/* Styling for each cart item */
+.cart-item {
+  background-color: #f9f9f9; /* Light background for each item */
+  border-radius: 8px; /* Rounded corners */
+  padding: 12px 20px; /* Padding around content */
+  margin-bottom: 10px; /* Space between items */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+/* Cart item text details */
+.cart-item-details {
+  flex-grow: 1; /* Allow details section to take up remaining space */
+}
+
+.cart-item-subject {
+  font-weight: bold; /* Bold for the subject */
+  font-size: 16px; /* Clear font size */
+  margin-bottom: 5px; /* Space below subject */
+}
+
+.cart-item-quantity-price {
+  display: flex;
+  justify-content: space-between; /* Space between quantity and price */
+  font-size: 14px; /* Smaller font size for quantity and price */
+  color: #555; /* Slightly dark text for quantity and price */
+}
+
+.cart-item-quantity,
+.cart-item-price {
+  font-size: 14px; /* Adjust font size for quantity and price */
+  font-weight: normal; /* Normal weight for the quantity and price */
+}
+
+.cart-item-quantity {
+  margin-right: 20px; /* Space between quantity and price */
+}
+
+/* Button styling */
+.remove-btn {
+  background-color: #ff4d4f; /* Red color for 'Remove' button */
+  border: none;
+  border-radius: 5px; /* Rounded corners */
+  padding: 5px 10px;
+  font-size: 12px; /* Smaller text */
+  transition: background-color 0.2s ease; /* Smooth color transition on hover */
+}
+
+.remove-btn:hover {
+  background-color: #ff3333; /* Darker red on hover */
+}
+
+/* For small screens (mobile) */
+@media (max-width: 767px) {
+  .cart-item-details {
+    margin-right: 10px; /* Add margin on the right side for mobile */
+  }
+
+  .cart-item-subject {
+    font-size: 14px; /* Adjust font size for smaller screens */
+  }
+
+  .cart-item-quantity-price {
+    font-size: 12px; /* Adjust font size for smaller screens */
+  }
+
+  .remove-btn {
+    font-size: 10px; /* Adjust button size on small screens */
+  }
+}
