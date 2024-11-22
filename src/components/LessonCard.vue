@@ -44,7 +44,8 @@ export default {
   },
   methods: {
     getImageUrl(imagePath) {
-      return `http://localhost:8000${imagePath}`;
+      const baseUrl = process.env.BASE_URL || `http://${process.env.HOST || 'localhost'}:${process.env.PORT || 8000}`;
+      return `${baseUrl}${imagePath}`;
     }
   }
 }
