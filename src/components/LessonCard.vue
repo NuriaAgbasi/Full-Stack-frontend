@@ -43,12 +43,13 @@ export default {
     addToCart: Function,
   },
   methods: {
-  getImageUrl(imagePath) {
-    const baseUrl = 'http://localhost:8000';  // Replace with the URL where your server is running
-    return `${baseUrl}${imagePath}`;
-  }
-}
-}
+    getImageUrl(imagePath) {
+      // Update the base URL to your Render server's URL
+      const baseUrl = 'https://full-stack-cw-backend.onrender.com'; 
+      return `${baseUrl}${imagePath}`;
+    },
+  },
+};
 </script>
 
 <style scoped>
