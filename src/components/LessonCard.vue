@@ -43,11 +43,11 @@ export default {
     addToCart: Function,
   },
   methods: {
-    getImageUrl(imagePath) {
-      const baseUrl = process.env.BASE_URL || `http://${process.env.HOST || 'localhost'}:${process.env.PORT || 8000}`;
-      return `${baseUrl}${imagePath}`;
-    }
+  getImageUrl(imagePath) {
+    const baseUrl = 'http://localhost:8000';  // Replace with the URL where your server is running
+    return `${baseUrl}${imagePath}`;
   }
+}
 }
 </script>
 
