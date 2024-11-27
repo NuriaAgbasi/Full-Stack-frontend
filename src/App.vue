@@ -210,36 +210,69 @@ export default {
       }
     },
     checkout() {
-      if (this.isFormValid) {
-        const orderData = {
-          name: this.name,
-          phoneNumber: this.phone,
-          items: this.cart.map(lesson => ({
-            id: lesson.id,
-            subject: lesson.subject,
-            price: lesson.price,
-            quantity: lesson.quantity,
-          })),
-        };
+  if (this.isFormValid) {
+    const orderData = {
+      name: this.name,
+      phoneNumber: this.phone,
+      items: this.cart.map(lesson => ({
+        id: lesson.id,
+        subject: lesson.subject,
+        price: lesson.price,
+        quantity: lesson.quantity,
+      })),
+    };
 
-        fetch('https://full-stack-cw-backend.onrender.com/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(orderData),
-        })
-          .then(response => response.json())
-          .then(orderResponse => {
-            this.message = 'Order has been submitted!';
-            this.cart = [];
-            this.name = '';
-            this.phone = '';
+    fetch('https://full-stack-cw-backend.onrender.com/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderData),
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to submit order');
+        }
+        return response.json();
+      })
+      .then(orderResponse => {
+        // After successful order, update spaces for each lesson
+        const updatePromises = this.cart.map(cartItem => {
+          return fetch(`https://full-stack-cw-backend.onrender.com/lessons/${cartItem.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ spaces: cartItem.spaces - cartItem.quantity }),
           })
-          .catch(error => {
-            console.error('Error submitting order:', error);
-            this.message = 'There was an error submitting your order.';
-          });
-      }
-    },
+            .then(updateResponse => {
+              if (!updateResponse.ok) {
+                throw new Error(`Failed to update spaces for lesson ID ${cartItem.id}`);
+              }
+              return updateResponse.json();
+            });
+        });
+
+        // Wait for all PUT requests to complete
+        return Promise.all(updatePromises);
+      })
+      .then(updatedLessons => {
+        // Update local lessons data with updated spaces
+        updatedLessons.forEach(updatedLesson => {
+          const lesson = this.lessons.find(l => l.id === updatedLesson.id);
+          if (lesson) {
+            lesson.spaces = updatedLesson.spaces;
+          }
+        });
+
+        // Clear the cart and reset the form
+        this.message = 'Order has been submitted and lessons updated!';
+        this.cart = [];
+        this.name = '';
+        this.phone = '';
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        this.message = 'There was an error processing your order or updating the lessons.';
+      });
+  }
+},
     fetchLessons() {
       fetch('https://full-stack-cw-backend.onrender.com/lessons')
         .then(response => response.json())
