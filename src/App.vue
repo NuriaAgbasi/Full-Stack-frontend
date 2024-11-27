@@ -19,21 +19,22 @@
       <SortOptions v-if="!showCart" @sort-lessons="handleSort" />
 
       <!-- Search Bar -->
-      <div class="mb-3">
-        <label for="search" class="form-label">Search Lessons</label>
-        <input
-          type="text"
-          id="search"
-          v-model="searchQuery"
-          class="form-control"
-          placeholder="Search by subject or description"
-        />
-      </div>
+<div class="mb-3">
+  <label for="search" class="form-label">Search Lessons</label>
+  <input
+    type="text"
+    id="search"
+    v-model="searchQuery"
+    class="form-control"
+    placeholder="Search by subject, location, price, or spaces"
+  />
+</div>
+
 
       <h2>Lessons</h2>
       <div class="row">
         <LessonCard
-          v-for="(lesson, index) in filteredAndSortedLessons"
+          v-for="(lesson, index) in SortedLessons"
           :key="index"
           :lesson="lesson"
           :addToCart="() => addToCart(lesson)"
@@ -117,7 +118,7 @@ export default {
   },
   data() {
     return {
-      lessons: [],
+      lessons: [], 
       cart: [],
       showCart: false,
       name: '',
@@ -128,28 +129,23 @@ export default {
       selectedSort: 'subject',
       selectedOrder: 'asc',
       searchQuery: '',
+      timeout: null,
     };
   },
   computed: {
-    filteredAndSortedLessons() {
-      return this.lessons
-        .filter(lesson => {
-          const searchString = this.searchQuery.toLowerCase();
-          return (
-            (lesson.subject && lesson.subject.toLowerCase().includes(searchString)) ||
-            (lesson.location && lesson.location.toLowerCase().includes(searchString)) ||
-            (lesson.price && lesson.price.toString().includes(searchString))
-          );
-        })
-        .sort((a, b) => {
-          let result;
-          if (typeof a[this.selectedSort] === 'string') {
-            result = a[this.selectedSort].localeCompare(b[this.selectedSort]);
-          } else {
-            result = a[this.selectedSort] - b[this.selectedSort];
-          }
-          return this.selectedOrder === 'asc' ? result : -result;
-        });
+    SortedLessons() {
+      if (!Array.isArray(this.lessons)) {
+        return []; // Ensure lessons is always an array
+      }
+      return this.lessons.sort((a, b) => {
+        let result;
+        if (typeof a[this.selectedSort] === 'string') {
+          result = a[this.selectedSort].localeCompare(b[this.selectedSort]);
+        } else {
+          result = a[this.selectedSort] - b[this.selectedSort];
+        }
+        return this.selectedOrder === 'asc' ? result : -result;
+      });
     },
     isFormValid() {
       return this.nameError === null && this.phoneError === null && this.name !== '' && this.phone !== '';
@@ -210,78 +206,114 @@ export default {
       }
     },
     checkout() {
-  if (this.isFormValid) {
-    const orderData = {
-      name: this.name,
-      phoneNumber: this.phone,
-      items: this.cart.map(lesson => ({
-        id: lesson.id,
-        subject: lesson.subject,
-        price: lesson.price,
-        quantity: lesson.quantity,
-      })),
-    };
+      if (this.isFormValid) {
+        const orderData = {
+          name: this.name,
+          phoneNumber: this.phone,
+          items: this.cart.map(lesson => ({
+            id: lesson.id,
+            subject: lesson.subject,
+            price: lesson.price,
+            quantity: lesson.quantity,
+          })),
+        };
 
-    fetch('https://full-stack-cw-backend.onrender.com/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orderData),
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Failed to submit order');
-        }
-        return response.json();
-      })
-      .then(orderResponse => {
-        // After successful order, update spaces for each lesson
-        const updatePromises = this.cart.map(cartItem => {
-          return fetch(`https://full-stack-cw-backend.onrender.com/lessons/${cartItem.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ spaces: cartItem.spaces - cartItem.quantity }),
+        fetch('https://full-stack-cw-backend.onrender.com/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderData),
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Failed to submit order');
+            }
+            return response.json();
           })
-            .then(updateResponse => {
-              if (!updateResponse.ok) {
-                throw new Error(`Failed to update spaces for lesson ID ${cartItem.id}`);
-              }
-              return updateResponse.json();
+          .then(orderResponse => {
+            // After successful order, update spaces for each lesson
+            const updatePromises = this.cart.map(cartItem => {
+              return fetch(`https://full-stack-cw-backend.onrender.com/lessons/${cartItem.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ spaces: cartItem.spaces - cartItem.quantity }),
+              })
+                .then(updateResponse => {
+                  if (!updateResponse.ok) {
+                    throw new Error(`Failed to update spaces for lesson ID ${cartItem.id}`);
+                  }
+                  return updateResponse.json();
+                });
             });
-        });
 
-        // Wait for all PUT requests to complete
-        return Promise.all(updatePromises);
-      })
-      .then(updatedLessons => {
-        // Update local lessons data with updated spaces
-        updatedLessons.forEach(updatedLesson => {
-          const lesson = this.lessons.find(l => l.id === updatedLesson.id);
-          if (lesson) {
-            lesson.spaces = updatedLesson.spaces;
-          }
-        });
+            // Wait for all PUT requests to complete
+            return Promise.all(updatePromises);
+          })
+          .then(updatedLessons => {
+            // Update local lessons data with updated spaces
+            updatedLessons.forEach(updatedLesson => {
+              const lesson = this.lessons.find(l => l.id === updatedLesson.id);
+              if (lesson) {
+                lesson.spaces = updatedLesson.spaces;
+              }
+            });
 
-        // Clear the cart and reset the form
-        this.message = 'Order has been submitted and lessons updated!';
-        this.cart = [];
-        this.name = '';
-        this.phone = '';
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        this.message = 'There was an error processing your order or updating the lessons.';
-      });
-  }
-},
+            // Clear the cart and reset the form
+            this.message = 'Order has been submitted and lessons updated!';
+            this.cart = [];
+            this.name = '';
+            this.phone = '';
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            this.message = 'There was an error processing your order or updating the lessons.';
+          });
+      }
+    },
     fetchLessons() {
       fetch('https://full-stack-cw-backend.onrender.com/lessons')
         .then(response => response.json())
-        .then(data => { this.lessons = data; })
+        .then(data => {
+          this.lessons = Array.isArray(data) ? data : []; // Ensure lessons is an array
+        })
         .catch(error => console.error('Error fetching lessons:', error));
+    },
+
+    fetchSearchedLessons(query = '') {
+      if (!query) return; // Avoid making the request if the query is empty
+      fetch(`https://full-stack-cw-backend.onrender.com/search?query=${query}`)
+        .then(response => response.json())
+        .then(data => { 
+          this.lessons = Array.isArray(data) ? data : []; // Ensure lessons is an array
+        })
+        .catch(error => console.error('Error fetching lessons:', error));
+    },
+
+    handleSearch() {
+      // Clear the previous timeout to prevent too many API calls
+      clearTimeout(this.timeout);
+      
+      // Set a timeout for the next API call
+      this.timeout = setTimeout(() => {
+      if (this.searchQuery.trim() === '') {
+        // If search query is empty, fetch all lessons again
+        this.fetchLessons();
+      } else {
+        // Otherwise, fetch the searched lessons
+        this.fetchSearchedLessons(this.searchQuery);
+      }
+    }, 500);  // Adjust the delay as needed (500ms here)
+  },
+  },
+
+  watch: {
+    searchQuery(newQuery) {
+      // Trigger search as the user types
+      this.handleSearch();
     },
   },
   created() {
     this.fetchLessons();
   },
 };
+
 </script>
